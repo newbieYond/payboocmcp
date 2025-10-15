@@ -1,0 +1,253 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>PaybooCMCP - MCP Server for CSV URL Processing</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+            line-height: 1.6;
+            color: #333;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 800px;
+            background: white;
+            border-radius: 12px;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+            padding: 40px;
+            animation: fadeIn 0.5s ease-in;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        h1 {
+            color: #667eea;
+            margin-bottom: 10px;
+            font-size: 2.5em;
+        }
+
+        .subtitle {
+            color: #666;
+            margin-bottom: 30px;
+            font-size: 1.2em;
+        }
+
+        .status {
+            display: inline-block;
+            padding: 8px 16px;
+            background: #10b981;
+            color: white;
+            border-radius: 20px;
+            font-weight: bold;
+            margin-bottom: 30px;
+        }
+
+        .section {
+            margin-bottom: 30px;
+        }
+
+        h2 {
+            color: #764ba2;
+            margin-bottom: 15px;
+            font-size: 1.5em;
+        }
+
+        .features {
+            list-style: none;
+            padding: 0;
+        }
+
+        .features li {
+            padding: 10px 0;
+            padding-left: 30px;
+            position: relative;
+        }
+
+        .features li:before {
+            content: "✓";
+            position: absolute;
+            left: 0;
+            color: #10b981;
+            font-weight: bold;
+            font-size: 1.2em;
+        }
+
+        .tools {
+            background: #f3f4f6;
+            padding: 20px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+        }
+
+        .tool-item {
+            margin-bottom: 15px;
+        }
+
+        .tool-name {
+            font-weight: bold;
+            color: #667eea;
+            font-family: 'Courier New', monospace;
+        }
+
+        .links {
+            display: flex;
+            gap: 15px;
+            flex-wrap: wrap;
+        }
+
+        .btn {
+            display: inline-block;
+            padding: 12px 24px;
+            background: #667eea;
+            color: white;
+            text-decoration: none;
+            border-radius: 6px;
+            font-weight: 600;
+            transition: all 0.3s ease;
+        }
+
+        .btn:hover {
+            background: #764ba2;
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(0,0,0,0.2);
+        }
+
+        .btn-secondary {
+            background: #6b7280;
+        }
+
+        .btn-secondary:hover {
+            background: #4b5563;
+        }
+
+        code {
+            background: #f3f4f6;
+            padding: 2px 6px;
+            border-radius: 3px;
+            font-family: 'Courier New', monospace;
+            font-size: 0.9em;
+        }
+
+        .tech-stack {
+            display: flex;
+            gap: 10px;
+            flex-wrap: wrap;
+            margin-top: 15px;
+        }
+
+        .tech-badge {
+            background: #e5e7eb;
+            padding: 6px 12px;
+            border-radius: 4px;
+            font-size: 0.9em;
+            color: #4b5563;
+        }
+
+        footer {
+            margin-top: 40px;
+            padding-top: 20px;
+            border-top: 1px solid #e5e7eb;
+            text-align: center;
+            color: #6b7280;
+            font-size: 0.9em;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>PaybooCMCP</h1>
+        <p class="subtitle">MCP Server for CSV URL Processing</p>
+        <span class="status">✓ Deployed Successfully</span>
+
+        <div class="section">
+            <h2>About</h2>
+            <p>TypeScript-based Model Context Protocol (MCP) server for processing CSV files and extracting organized URL links. Designed for integration with Claude Desktop.</p>
+        </div>
+
+        <div class="section">
+            <h2>Features</h2>
+            <ul class="features">
+                <li>CSV file parsing from data directory</li>
+                <li>Automatic URL extraction from any column</li>
+                <li>Categorization and organization of URLs</li>
+                <li>MCP Tools API (3 tools available)</li>
+                <li>MCP Resources with csv:// URI scheme</li>
+            </ul>
+        </div>
+
+        <div class="section">
+            <h2>Available MCP Tools</h2>
+            <div class="tools">
+                <div class="tool-item">
+                    <div class="tool-name">get_urls_from_csv</div>
+                    <div>Extract and organize URLs from a specific CSV file</div>
+                </div>
+                <div class="tool-item">
+                    <div class="tool-name">list_csv_files</div>
+                    <div>List all available CSV files in the data directory</div>
+                </div>
+                <div class="tool-item">
+                    <div class="tool-name">get_all_urls</div>
+                    <div>Get all URLs from all CSV files, organized by filename</div>
+                </div>
+            </div>
+        </div>
+
+        <div class="section">
+            <h2>Technology Stack</h2>
+            <div class="tech-stack">
+                <span class="tech-badge">TypeScript 5.7.2</span>
+                <span class="tech-badge">Node.js 18+</span>
+                <span class="tech-badge">MCP SDK 1.0.4</span>
+                <span class="tech-badge">csv-parse 5.6.0</span>
+                <span class="tech-badge">Vercel</span>
+            </div>
+        </div>
+
+        <div class="section">
+            <h2>Usage</h2>
+            <p>This MCP server is designed to run locally with Claude Desktop via stdio transport. It is not a web API.</p>
+            <p style="margin-top: 10px;">To use this server:</p>
+            <ol style="margin-left: 20px; margin-top: 10px;">
+                <li>Clone the repository from GitHub</li>
+                <li>Run <code>npm install</code> and <code>npm run build</code></li>
+                <li>Configure Claude Desktop with the server path</li>
+                <li>Use MCP tools in Claude conversations</li>
+            </ol>
+        </div>
+
+        <div class="section">
+            <div class="links">
+                <a href="https://github.com/YOUR_USERNAME/payboocmcp" class="btn" target="_blank">
+                    📦 GitHub Repository
+                </a>
+                <a href="https://github.com/YOUR_USERNAME/payboocmcp/blob/main/README.md" class="btn btn-secondary" target="_blank">
+                    📖 Documentation
+                </a>
+            </div>
+        </div>
+
+        <footer>
+            <p>Built with TypeScript, MCP SDK, and deployed on Vercel</p>
+            <p style="margin-top: 5px;">🤖 Generated with Claude Code</p>
+        </footer>
+    </div>
+</body>
+</html>
