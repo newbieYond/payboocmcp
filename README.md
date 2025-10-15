@@ -2,6 +2,14 @@
 
 TypeScript-based Model Context Protocol (MCP) server for processing CSV files and extracting organized URL links.
 
+## Quick Links
+
+- **[Deployment Guide](DEPLOYMENT.md)** - GitHub & Vercel setup instructions
+- **[Usage Guide](USAGE.md)** - MCP tools and examples
+- **[Architecture](ARCHITECTURE.md)** - System design and data flow
+- **[Checklist](CHECKLIST.md)** - Step-by-step deployment checklist
+- **[Project Summary](PROJECT_SUMMARY.md)** - Complete overview
+
 ## Features
 
 - **CSV File Processing**: Read and parse CSV files from the `data/` directory
