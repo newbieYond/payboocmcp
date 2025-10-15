@@ -117,6 +117,30 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
 
     const { method, params, id } = request;
 
+    // Handle initialize (MCP handshake)
+    if (method === 'initialize') {
+      return res.status(200).json({
+        jsonrpc: '2.0',
+        id,
+        result: {
+          protocolVersion: '2024-11-05',
+          capabilities: {
+            tools: {},
+            resources: {},
+          },
+          serverInfo: {
+            name: 'payboocmcp-remote',
+            version: '1.0.0',
+          },
+        },
+      });
+    }
+
+    // Handle initialized (notification)
+    if (method === 'notifications/initialized') {
+      return res.status(200).end();
+    }
+
     // Handle tools/list
     if (method === 'tools/list') {
       return res.status(200).json({
