@@ -102,10 +102,15 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
   }
 
   try {
+    // Debug logging
+    console.log('Request body type:', typeof req.body);
+    console.log('Request body:', JSON.stringify(req.body).substring(0, 200));
+
     // Parse body if it's a string, handle empty body
     let request;
 
     if (!req.body || (typeof req.body === 'string' && req.body.trim() === '')) {
+      console.error('Empty body received');
       return res.status(400).json({
         jsonrpc: '2.0',
         id: null,
@@ -120,12 +125,13 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
       try {
         request = JSON.parse(req.body);
       } catch (e) {
+        console.error('JSON parse error:', e);
         return res.status(400).json({
           jsonrpc: '2.0',
           id: null,
           error: {
             code: -32700,
-            message: 'Parse error: Invalid JSON',
+            message: `Parse error: ${e instanceof Error ? e.message : 'Invalid JSON'}`,
           },
         });
       }

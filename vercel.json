@@ -1,5 +1,11 @@
 {
   "rewrites": [
     { "source": "/", "destination": "/public/index.html" }
-  ]
+  ],
+  "functions": {
+    "api/mcp-server.ts": {
+      "memory": 1024,
+      "maxDuration": 10
+    }
+  }
 }
