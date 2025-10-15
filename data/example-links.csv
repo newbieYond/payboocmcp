@@ -1,0 +1,9 @@
+category,title,url,description
+Documentation,TypeScript Docs,https://www.typescriptlang.org/docs/,Official TypeScript documentation
+Documentation,Node.js Docs,https://nodejs.org/en/docs/,Official Node.js documentation
+MCP,MCP SDK,https://github.com/modelcontextprotocol/sdk,Model Context Protocol SDK repository
+MCP,MCP Spec,https://spec.modelcontextprotocol.io/,Official MCP specification
+Tools,Vercel,https://vercel.com/docs,Vercel deployment documentation
+Tools,GitHub,https://github.com,GitHub code hosting platform
+Libraries,csv-parse,https://csv.js.org/parse/,CSV parsing library for Node.js
+Development,TypeScript Handbook,https://www.typescriptlang.org/docs/handbook/intro.html,Comprehensive TypeScript guide
