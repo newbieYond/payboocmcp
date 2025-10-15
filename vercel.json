@@ -1,16 +1,5 @@
 {
-  "version": 2,
   "buildCommand": "npm run build",
-  "devCommand": "npm run dev",
   "installCommand": "npm install",
-  "framework": null,
-  "outputDirectory": "dist",
-  "functions": {
-    "api/**/*.js": {
-      "runtime": "nodejs20.x"
-    }
-  },
-  "env": {
-    "CSV_DATA_DIR": "data"
-  }
+  "outputDirectory": "dist"
 }
