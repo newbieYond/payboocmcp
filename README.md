@@ -1,214 +1,239 @@
-# PaybooCMCP - CSV URL Processor MCP Server
+# PaybooCMCP - Remote MCP Server
 
-TypeScript-based Model Context Protocol (MCP) server for processing CSV files and extracting organized URL links.
+TypeScript-based Remote MCP server for processing CSV files and extracting organized URL links. Works with Claude Desktop from anywhere via Vercel.
 
-## Quick Links
+## 🌐 What is This?
 
-- **[Deployment Guide](DEPLOYMENT.md)** - GitHub & Vercel setup instructions
-- **[Usage Guide](USAGE.md)** - MCP tools and examples
-- **[Architecture](ARCHITECTURE.md)** - System design and data flow
-- **[Checklist](CHECKLIST.md)** - Step-by-step deployment checklist
-- **[Project Summary](PROJECT_SUMMARY.md)** - Complete overview
+A **Remote MCP (Model Context Protocol) server** that:
+- Processes CSV files containing URLs
+- Extracts and organizes URLs by category
+- Works with Claude Desktop over HTTPS
+- Hosted on Vercel (no local server needed)
 
-## Features
+## 🚀 Quick Start
 
-- **CSV File Processing**: Read and parse CSV files from the `data/` directory
-- **URL Extraction**: Automatically extract URLs from any column in CSV files
-- **Categorization**: Organize URLs by category (if present in CSV)
-- **MCP Tools**: Three main tools for accessing CSV data
-- **MCP Resources**: Expose CSV files as resources with URI scheme `csv://`
+### For Claude Desktop Users
 
-## Project Structure
+1. **Clone this repository**:
+   ```bash
+   git clone https://github.com/newbieYond/payboocmcp.git
+   cd payboocmcp
+   ```
+
+2. **Configure Claude Desktop**:
+
+   Edit `~/Library/Application Support/Claude/claude_desktop_config.json`:
+   ```json
+   {
+     "mcpServers": {
+       "payboocmcp-remote": {
+         "command": "node",
+         "args": [
+           "/ABSOLUTE/PATH/TO/payboocmcp/mcp-proxy.cjs"
+         ]
+       }
+     }
+   }
+   ```
+
+   Replace `/ABSOLUTE/PATH/TO/payboocmcp` with your actual path.
+
+3. **Restart Claude Desktop** (Cmd + Q, then reopen)
+
+4. **Test it**:
+   - Ask Claude: "CSV 파일 목록을 보여줘"
+   - Ask Claude: "example-links.csv에서 URL을 추출해줘"
+
+## 📋 Features
+
+- ✅ **Remote Access**: Works from anywhere with internet
+- ✅ **No Local Server**: Runs on Vercel serverless
+- ✅ **3 MCP Tools**:
+  - `list_csv_files` - List available CSV files
+  - `get_urls_from_csv` - Extract URLs from specific file
+  - `get_all_urls` - Get all URLs from all files
+- ✅ **CSV Resources**: Access via `csv://filename.csv` URIs
+- ✅ **Auto Categorization**: URLs organized by category/type
+- ✅ **Zero Configuration**: Just add to Claude Desktop
+
+## 🗂️ Project Structure
 
 ```
 payboocmcp/
+├── api/
+│   └── mcp-server.ts       # Remote MCP endpoint (Vercel)
 ├── src/
-│   ├── index.ts           # Main MCP server implementation
-│   └── csv-processor.ts   # CSV parsing and URL extraction logic
-├── data/                  # CSV files directory
-│   ├── example-links.csv
-│   └── sample-urls.csv
-├── api/                   # Vercel serverless functions
-│   └── mcp.ts
-├── dist/                  # Compiled JavaScript output
+│   ├── index.ts            # Local MCP server (optional)
+│   └── csv-processor.ts    # CSV parsing logic
+├── data/
+│   ├── example-links.csv   # Sample CSV with categories
+│   └── sample-urls.csv     # Simple CSV format
+├── mcp-proxy.cjs           # HTTP-to-stdio proxy for Claude Desktop
 ├── package.json
 ├── tsconfig.json
-├── vercel.json            # Vercel deployment configuration
+├── vercel.json
 └── README.md
 ```
 
-## Installation
+## 📝 CSV File Format
 
-```bash
-npm install
-```
-
-## Development
-
-Run the server in development mode with auto-reload:
-
-```bash
-npm run dev
-```
-
-## Build
-
-Compile TypeScript to JavaScript:
-
-```bash
-npm run build
-```
-
-## Usage
-
-### MCP Tools
-
-The server provides three tools:
-
-1. **get_urls_from_csv**
-   - Extract URLs from a specific CSV file
-   - Input: `{ filename: "example-links.csv" }`
-   - Returns: Organized URLs with categories and totals
-
-2. **list_csv_files**
-   - List all available CSV files in the data directory
-   - Input: `{}`
-   - Returns: Array of CSV filenames
-
-3. **get_all_urls**
-   - Get all URLs from all CSV files
-   - Input: `{}`
-   - Returns: Object with URLs organized by filename
-
-### MCP Resources
-
-CSV files are exposed as resources with the URI scheme:
-- `csv://example-links.csv`
-- `csv://sample-urls.csv`
-
-### CSV File Format
-
-CSV files should have headers and can include URLs in any column. Optional `category` column for organization:
+### With Categories
 
 ```csv
 category,title,url,description
-Documentation,TypeScript,https://www.typescriptlang.org/docs/,Official docs
+Documentation,TypeScript,https://typescriptlang.org,Official docs
 Tools,GitHub,https://github.com,Code hosting
 ```
 
-## Configuration
+### Simple Format
 
-### Claude Desktop
-
-Add to your Claude Desktop configuration (`~/Library/Application Support/Claude/claude_desktop_config.json` on macOS):
-
-```json
-{
-  "mcpServers": {
-    "payboocmcp": {
-      "command": "node",
-      "args": ["/absolute/path/to/payboocmcp/dist/index.js"],
-      "env": {
-        "CSV_DATA_DIR": "/absolute/path/to/payboocmcp/data"
-      }
-    }
-  }
-}
+```csv
+name,link
+TypeScript,https://typescriptlang.org
+GitHub,https://github.com
 ```
 
-### Environment Variables
+URLs can be in **any column** - the parser automatically detects them.
 
-- `CSV_DATA_DIR`: Path to the directory containing CSV files (default: `./data`)
+## 🔧 How It Works
 
-## Deployment
+```
+Claude Desktop (local)
+    ↓ stdio
+mcp-proxy.cjs (local proxy)
+    ↓ HTTPS
+Vercel MCP Server (https://payboocmcp.vercel.app/api/mcp-server)
+    ↓
+CSV files processing
+    ↓
+Organized URLs returned
+```
 
-### Vercel
+## 📖 Available Tools
 
-1. **Install Vercel CLI**:
-   ```bash
-   npm i -g vercel
-   ```
+### 1. list_csv_files
 
-2. **Deploy**:
-   ```bash
-   vercel
-   ```
+Lists all CSV files in the data directory.
 
-3. **Production Deployment**:
-   ```bash
-   vercel --prod
-   ```
+**Usage in Claude**:
+```
+"What CSV files are available?"
+```
 
-### GitHub Integration
+**Response**:
+```json
+[
+  "example-links.csv",
+  "sample-urls.csv"
+]
+```
 
-1. **Create GitHub Repository**:
-   ```bash
-   git add .
-   git commit -m "Initial commit: TypeScript MCP server for CSV URL processing"
-   git branch -M main
-   git remote add origin https://github.com/yourusername/payboocmcp.git
-   git push -u origin main
-   ```
+### 2. get_urls_from_csv
 
-2. **Connect to Vercel**:
-   - Visit [vercel.com](https://vercel.com)
-   - Import your GitHub repository
-   - Configure build settings (auto-detected from `vercel.json`)
-   - Deploy
+Extracts URLs from a specific CSV file, organized by category.
 
-3. **Auto-Deploy on Push**:
-   - Every push to `main` triggers automatic deployment
-   - Pull requests create preview deployments
+**Usage in Claude**:
+```
+"Get URLs from example-links.csv"
+```
 
-## Technical Details
-
-### Dependencies
-
-- `@modelcontextprotocol/sdk`: MCP server implementation
-- `csv-parse`: Fast and reliable CSV parsing
-- `typescript`: Type-safe development
-- `tsx`: Development runner for TypeScript
-
-### MCP Capabilities
-
-- **Tools**: Three tools for CSV file interaction
-- **Resources**: Dynamic resource listing of CSV files
-
-### URL Extraction
-
-The server uses regex pattern matching to extract URLs from any CSV column:
-- Supports `http://` and `https://` protocols
-- Deduplicates URLs automatically
-- Categorizes based on CSV columns (`category`, `type`, etc.)
-
-## Example Output
-
+**Response**:
 ```json
 {
-  "urls": [
-    "https://www.typescriptlang.org/docs/",
-    "https://nodejs.org/en/docs/",
-    "https://github.com/modelcontextprotocol/sdk"
-  ],
+  "urls": ["https://...", "https://..."],
   "categorized": {
-    "Documentation": [
-      "https://www.typescriptlang.org/docs/",
-      "https://nodejs.org/en/docs/"
-    ],
-    "MCP": [
-      "https://github.com/modelcontextprotocol/sdk"
-    ]
+    "Documentation": ["https://..."],
+    "Tools": ["https://..."]
   },
-  "total": 3
+  "total": 8
 }
 ```
 
-## License
+### 3. get_all_urls
+
+Gets all URLs from all CSV files.
+
+**Usage in Claude**:
+```
+"Show me all URLs from all CSV files"
+```
+
+## 🛠️ Development
+
+### Local Development
+
+```bash
+# Install dependencies
+npm install
+
+# Build TypeScript
+npm run build
+
+# Run local MCP server (optional)
+npm run dev
+```
+
+### Testing Remote MCP
+
+```bash
+# Test the proxy
+echo '{"jsonrpc":"2.0","id":1,"method":"tools/list"}' | node mcp-proxy.cjs
+```
+
+### Adding Your Own CSV Files
+
+1. Add CSV file to `data/` directory
+2. Commit and push to GitHub
+3. Vercel automatically redeploys
+4. URLs available immediately in Claude Desktop
+
+## 🌍 Deployment
+
+This project is automatically deployed to Vercel:
+
+- **MCP Endpoint**: https://payboocmcp.vercel.app/api/mcp-server
+- **Protocol**: JSON-RPC 2.0 over HTTPS
+- **Auto-deploy**: Every push to `main` branch
+
+## 📚 Documentation
+
+- **[REMOTE_MCP_SETUP.md](REMOTE_MCP_SETUP.md)** - Detailed setup guide with troubleshooting
+
+## 🔐 Security
+
+- HTTPS only (Vercel automatic SSL)
+- CORS enabled for cross-origin requests
+- No authentication (public read-only access)
+- CSV files are version-controlled
+
+## 🆚 Remote vs Local MCP
+
+| Feature | Remote MCP | Local MCP |
+|---------|-----------|-----------|
+| Setup | Simple (proxy only) | Complex (build + config) |
+| Access | Anywhere | Local only |
+| Speed | ~100-500ms | ~10ms |
+| Sharing | Easy (same URL) | Hard (each setup) |
+| Updates | Auto (Vercel) | Manual rebuild |
+
+## 🤝 Contributing
+
+1. Fork the repository
+2. Add your CSV files to `data/`
+3. Create a pull request
+
+## 📄 License
 
 MIT
 
-## Notes
+## 🔗 Links
 
-- MCP servers typically run via stdio transport, not HTTP
-- The Vercel deployment provides an API endpoint but is primarily for code hosting
-- Local usage via Claude Desktop is the recommended integration method
+- **GitHub**: https://github.com/newbieYond/payboocmcp
+- **Remote MCP Server**: https://payboocmcp.vercel.app/api/mcp-server
+- **MCP Specification**: https://spec.modelcontextprotocol.io/
+
+---
+
+**Built with**: TypeScript, Vercel, Model Context Protocol
+**Generated with**: Claude Code
+**Ready for**: Production use with Claude Desktop
