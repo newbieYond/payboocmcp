@@ -70,9 +70,19 @@ rl.on('line', async (line) => {
       });
 
       res.on('end', () => {
-        // Write response to stdout (back to Claude Desktop)
-        console.log(body);
-        log(`Response sent for ${request.method}`);
+        // Notifications (204 No Content) don't need responses sent to stdout
+        if (res.statusCode === 204) {
+          log(`Notification acknowledged: ${request.method}`);
+          return;
+        }
+
+        // Only send non-empty responses to stdout
+        if (body && body.trim()) {
+          console.log(body);
+          log(`Response sent for ${request.method}`);
+        } else {
+          log(`Empty response for ${request.method}, skipping stdout`);
+        }
       });
     });
 

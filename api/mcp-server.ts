@@ -171,9 +171,21 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
       });
     }
 
-    // Handle initialized (notification)
+    // Handle initialized (notification - no response needed)
     if (method === 'notifications/initialized') {
-      return res.status(200).end();
+      // Notifications don't get responses, just acknowledge
+      return res.status(204).end();
+    }
+
+    // Handle prompts/list
+    if (method === 'prompts/list') {
+      return res.status(200).json({
+        jsonrpc: '2.0',
+        id,
+        result: {
+          prompts: [],
+        },
+      });
     }
 
     // Handle tools/list
