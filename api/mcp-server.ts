@@ -1,11 +1,4 @@
 import type { VercelRequest, VercelResponse } from '@vercel/node';
-import { Server } from '@modelcontextprotocol/sdk/server/index.js';
-import {
-  CallToolRequestSchema,
-  ListToolsRequestSchema,
-  ListResourcesRequestSchema,
-  ReadResourceRequestSchema,
-} from '@modelcontextprotocol/sdk/types.js';
 import { readFileSync, readdirSync } from 'fs';
 import { join } from 'path';
 import { parse } from 'csv-parse/sync';
@@ -87,161 +80,7 @@ function getCSVFiles(): string[] {
   return readdirSync(DATA_DIR).filter(file => file.endsWith('.csv'));
 }
 
-// Create MCP server instance
-const server = new Server(
-  {
-    name: 'payboocmcp-remote',
-    version: '1.0.0',
-  },
-  {
-    capabilities: {
-      tools: {},
-      resources: {},
-    },
-  }
-);
-
-// Set up tool handlers
-server.setRequestHandler(ListToolsRequestSchema, async () => {
-  return {
-    tools: [
-      {
-        name: 'get_urls_from_csv',
-        description: 'Extract and organize URLs from a CSV file',
-        inputSchema: {
-          type: 'object',
-          properties: {
-            filename: {
-              type: 'string',
-              description: 'Name of the CSV file to process',
-            },
-          },
-          required: ['filename'],
-        },
-      },
-      {
-        name: 'list_csv_files',
-        description: 'List all available CSV files',
-        inputSchema: {
-          type: 'object',
-          properties: {},
-        },
-      },
-      {
-        name: 'get_all_urls',
-        description: 'Get all URLs from all CSV files',
-        inputSchema: {
-          type: 'object',
-          properties: {},
-        },
-      },
-    ],
-  };
-});
-
-server.setRequestHandler(CallToolRequestSchema, async (request) => {
-  const { name, arguments: args } = request.params;
-
-  try {
-    if (name === 'get_urls_from_csv') {
-      const filename = args?.filename as string;
-      if (!filename) {
-        throw new Error('Filename is required');
-      }
-
-      const data = readCSVFile(filename);
-      const urls = organizeURLs(data);
-
-      return {
-        content: [
-          {
-            type: 'text',
-            text: JSON.stringify(urls, null, 2),
-          },
-        ],
-      };
-    } else if (name === 'list_csv_files') {
-      const files = getCSVFiles();
-
-      return {
-        content: [
-          {
-            type: 'text',
-            text: JSON.stringify(files, null, 2),
-          },
-        ],
-      };
-    } else if (name === 'get_all_urls') {
-      const files = getCSVFiles();
-      const allUrls: Record<string, OrganizedURLs> = {};
-
-      for (const file of files) {
-        const data = readCSVFile(file);
-        allUrls[file] = organizeURLs(data);
-      }
-
-      return {
-        content: [
-          {
-            type: 'text',
-            text: JSON.stringify(allUrls, null, 2),
-          },
-        ],
-      };
-    }
-
-    throw new Error(`Unknown tool: ${name}`);
-  } catch (error) {
-    const errorMessage = error instanceof Error ? error.message : 'Unknown error';
-    return {
-      content: [
-        {
-          type: 'text',
-          text: `Error: ${errorMessage}`,
-        },
-      ],
-      isError: true,
-    };
-  }
-});
-
-server.setRequestHandler(ListResourcesRequestSchema, async () => {
-  const files = getCSVFiles();
-
-  return {
-    resources: files.map((file) => ({
-      uri: `csv://${file}`,
-      name: file,
-      description: `CSV file: ${file}`,
-      mimeType: 'text/csv',
-    })),
-  };
-});
-
-server.setRequestHandler(ReadResourceRequestSchema, async (request) => {
-  const uri = request.params.uri;
-  const filename = uri.replace('csv://', '');
-
-  try {
-    const data = readCSVFile(filename);
-    const urls = organizeURLs(data);
-
-    return {
-      contents: [
-        {
-          uri,
-          mimeType: 'application/json',
-          text: JSON.stringify(urls, null, 2),
-        },
-      ],
-    };
-  } catch (error) {
-    const errorMessage = error instanceof Error ? error.message : 'Unknown error';
-    throw new Error(`Failed to read resource ${uri}: ${errorMessage}`);
-  }
-});
-
-// HTTP handler for Vercel
+//  MCP JSON-RPC handler
 export default async function handler(req: VercelRequest, res: VercelResponse) {
   // CORS headers
   res.setHeader('Access-Control-Allow-Origin', '*');
@@ -253,54 +92,217 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
   }
 
   if (req.method !== 'POST') {
-    return res.status(405).json({
-      error: 'Method not allowed',
-      message: 'This is an MCP server endpoint. Use POST with JSON-RPC 2.0 format.',
+    return res.status(200).json({
+      name: 'payboocmcp-remote',
+      version: '1.0.0',
+      description: 'MCP server for CSV URL processing',
+      protocol: 'mcp',
+      message: 'Send POST requests with JSON-RPC 2.0 format',
     });
   }
 
   try {
     const request = req.body;
 
-    // Handle MCP protocol requests
-    if (request.jsonrpc === '2.0' && request.method) {
-      // Process the request through the MCP server
-      let result;
+    if (!request || request.jsonrpc !== '2.0') {
+      return res.status(400).json({
+        jsonrpc: '2.0',
+        id: request?.id || null,
+        error: {
+          code: -32600,
+          message: 'Invalid Request',
+        },
+      });
+    }
 
-      if (request.method === 'tools/list') {
-        const handler = server['requestHandlers'].get(ListToolsRequestSchema);
-        result = await handler(request);
-      } else if (request.method === 'tools/call') {
-        const handler = server['requestHandlers'].get(CallToolRequestSchema);
-        result = await handler(request);
-      } else if (request.method === 'resources/list') {
-        const handler = server['requestHandlers'].get(ListResourcesRequestSchema);
-        result = await handler(request);
-      } else if (request.method === 'resources/read') {
-        const handler = server['requestHandlers'].get(ReadResourceRequestSchema);
-        result = await handler(request);
-      } else {
-        return res.status(400).json({
+    const { method, params, id } = request;
+
+    // Handle tools/list
+    if (method === 'tools/list') {
+      return res.status(200).json({
+        jsonrpc: '2.0',
+        id,
+        result: {
+          tools: [
+            {
+              name: 'get_urls_from_csv',
+              description: 'Extract and organize URLs from a CSV file',
+              inputSchema: {
+                type: 'object',
+                properties: {
+                  filename: {
+                    type: 'string',
+                    description: 'Name of the CSV file to process',
+                  },
+                },
+                required: ['filename'],
+              },
+            },
+            {
+              name: 'list_csv_files',
+              description: 'List all available CSV files',
+              inputSchema: {
+                type: 'object',
+                properties: {},
+              },
+            },
+            {
+              name: 'get_all_urls',
+              description: 'Get all URLs from all CSV files',
+              inputSchema: {
+                type: 'object',
+                properties: {},
+              },
+            },
+          ],
+        },
+      });
+    }
+
+    // Handle tools/call
+    if (method === 'tools/call') {
+      const toolName = params?.name;
+      const args = params?.arguments || {};
+
+      if (toolName === 'list_csv_files') {
+        const files = getCSVFiles();
+        return res.status(200).json({
           jsonrpc: '2.0',
-          id: request.id,
-          error: {
-            code: -32601,
-            message: 'Method not found',
+          id,
+          result: {
+            content: [
+              {
+                type: 'text',
+                text: JSON.stringify(files, null, 2),
+              },
+            ],
+          },
+        });
+      }
+
+      if (toolName === 'get_urls_from_csv') {
+        const filename = args.filename;
+        if (!filename) {
+          return res.status(200).json({
+            jsonrpc: '2.0',
+            id,
+            error: {
+              code: -32602,
+              message: 'Invalid params: filename is required',
+            },
+          });
+        }
+
+        const data = readCSVFile(filename);
+        const urls = organizeURLs(data);
+
+        return res.status(200).json({
+          jsonrpc: '2.0',
+          id,
+          result: {
+            content: [
+              {
+                type: 'text',
+                text: JSON.stringify(urls, null, 2),
+              },
+            ],
+          },
+        });
+      }
+
+      if (toolName === 'get_all_urls') {
+        const files = getCSVFiles();
+        const allUrls: Record<string, OrganizedURLs> = {};
+
+        for (const file of files) {
+          const data = readCSVFile(file);
+          allUrls[file] = organizeURLs(data);
+        }
+
+        return res.status(200).json({
+          jsonrpc: '2.0',
+          id,
+          result: {
+            content: [
+              {
+                type: 'text',
+                text: JSON.stringify(allUrls, null, 2),
+              },
+            ],
           },
         });
       }
 
       return res.status(200).json({
         jsonrpc: '2.0',
-        id: request.id,
-        result,
+        id,
+        error: {
+          code: -32601,
+          message: `Unknown tool: ${toolName}`,
+        },
       });
     }
 
-    return res.status(400).json({
-      error: 'Invalid request format',
-      message: 'Expected JSON-RPC 2.0 request',
+    // Handle resources/list
+    if (method === 'resources/list') {
+      const files = getCSVFiles();
+      return res.status(200).json({
+        jsonrpc: '2.0',
+        id,
+        result: {
+          resources: files.map((file) => ({
+            uri: `csv://${file}`,
+            name: file,
+            description: `CSV file: ${file}`,
+            mimeType: 'text/csv',
+          })),
+        },
+      });
+    }
+
+    // Handle resources/read
+    if (method === 'resources/read') {
+      const uri = params?.uri;
+      if (!uri) {
+        return res.status(200).json({
+          jsonrpc: '2.0',
+          id,
+          error: {
+            code: -32602,
+            message: 'Invalid params: uri is required',
+          },
+        });
+      }
+
+      const filename = uri.replace('csv://', '');
+      const data = readCSVFile(filename);
+      const urls = organizeURLs(data);
+
+      return res.status(200).json({
+        jsonrpc: '2.0',
+        id,
+        result: {
+          contents: [
+            {
+              uri,
+              mimeType: 'application/json',
+              text: JSON.stringify(urls, null, 2),
+            },
+          ],
+        },
+      });
+    }
+
+    // Method not found
+    return res.status(200).json({
+      jsonrpc: '2.0',
+      id,
+      error: {
+        code: -32601,
+        message: `Method not found: ${method}`,
+      },
     });
+
   } catch (error) {
     return res.status(500).json({
       jsonrpc: '2.0',
