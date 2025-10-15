@@ -102,7 +102,36 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
   }
 
   try {
-    const request = req.body;
+    // Parse body if it's a string, handle empty body
+    let request;
+
+    if (!req.body || (typeof req.body === 'string' && req.body.trim() === '')) {
+      return res.status(400).json({
+        jsonrpc: '2.0',
+        id: null,
+        error: {
+          code: -32700,
+          message: 'Parse error: Empty request body',
+        },
+      });
+    }
+
+    if (typeof req.body === 'string') {
+      try {
+        request = JSON.parse(req.body);
+      } catch (e) {
+        return res.status(400).json({
+          jsonrpc: '2.0',
+          id: null,
+          error: {
+            code: -32700,
+            message: 'Parse error: Invalid JSON',
+          },
+        });
+      }
+    } else {
+      request = req.body;
+    }
 
     if (!request || request.jsonrpc !== '2.0') {
       return res.status(400).json({
