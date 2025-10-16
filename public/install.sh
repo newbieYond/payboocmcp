@@ -235,13 +235,13 @@ configure_mcp() {
 
     # 설정 파일 생성/업데이트
     if [[ -f "$CONFIG_FILE" ]]; then
-        log_info "기존 설정 파일에 링크찾기 MCP 추가 중..."
+        log_info "기존 설정 파일에 페이북 정보 MCP 추가 중..."
 
         # JSON 파싱 및 병합 (jq 사용)
         if command -v jq &> /dev/null; then
             # jq로 안전하게 병합
             TMP_FILE=$(mktemp)
-            jq --arg proxy "$PROXY_FILE" '.mcpServers["링크찾기"] = {
+            jq --arg proxy "$PROXY_FILE" '.mcpServers["페이북 정보"] = {
                 "command": "node",
                 "args": [$proxy]
             }' "$CONFIG_FILE" > "$TMP_FILE" || {
@@ -260,7 +260,7 @@ configure_mcp() {
             cat << EOF
 {
   "mcpServers": {
-    "링크찾기": {
+    "페이북 정보": {
       "command": "node",
       "args": ["$PROXY_FILE"]
     }
@@ -276,7 +276,7 @@ EOF
         cat > "$CONFIG_FILE" << EOF
 {
   "mcpServers": {
-    "링크찾기": {
+    "페이북 정보": {
       "command": "node",
       "args": ["$PROXY_FILE"]
     }
@@ -442,7 +442,7 @@ main() {
         cat << EOF
 {
   "mcpServers": {
-    "링크찾기": {
+    "페이북 정보": {
       "command": "node",
       "args": ["$HOME/.paybooc-mcp/mcp-proxy.cjs"]
     }

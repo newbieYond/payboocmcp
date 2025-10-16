@@ -1,4 +1,4 @@
-# 링크찾기 - 페이북 트래킹 링크 검색 MCP 서버
+# 페이북 정보 - 페이북 트래킹 링크 검색 MCP 서버
 
 텍스트 검색으로 페이북 트래킹 링크를 찾는 MCP (Model Context Protocol) 서버입니다. Vercel에 배포되어 Claude Desktop에서 원격으로 사용할 수 있습니다.
 
@@ -18,11 +18,6 @@
 
 ```bash
 curl -fsSL https://payboocmcp.vercel.app/install.sh | bash
-```
-
-**또는 GitHub에서:**
-```bash
-curl -fsSL https://raw.githubusercontent.com/newbieYond/payboocmcp/main/public/install.sh | bash
 ```
 
 **설치 완료 후:**
@@ -47,7 +42,7 @@ curl -fsSL https://raw.githubusercontent.com/newbieYond/payboocmcp/main/public/i
    ```json
    {
      "mcpServers": {
-       "링크찾기": {
+       "페이북 정보": {
          "command": "node",
          "args": [
            "/절대/경로/payboocmcp/mcp-proxy.cjs"
@@ -70,12 +65,6 @@ curl -fsSL https://raw.githubusercontent.com/newbieYond/payboocmcp/main/public/i
 
    그리고 설정에서 경로를 `~/.paybooc-mcp/mcp-proxy.cjs`로 변경
 
-   **또는 GitHub에서:**
-   ```bash
-   curl -fsSL https://raw.githubusercontent.com/newbieYond/payboocmcp/main/mcp-proxy.cjs \
-     -o ~/.paybooc-mcp/mcp-proxy.cjs
-   ```
-
    **옵션 B - 로컬 프로젝트 사용**:
    위 설정 그대로 사용 (절대 경로 필요)
 
@@ -92,12 +81,8 @@ curl -fsSL https://raw.githubusercontent.com/newbieYond/payboocmcp/main/public/i
 - ✅ **원격 접근**: 인터넷만 있으면 어디서나 사용
 - ✅ **로컬 서버 불필요**: Vercel 서버리스로 실행
 - ✅ **프롬프트 지원**: **"페이북 링크 찾아줘"** 단축어 사용
-- ✅ **4가지 MCP 도구**:
+- ✅ **MCP 도구**:
   - `search_links` ⭐ **텍스트로 트래킹 링크 검색**
-  - `list_csv_files` - CSV 파일 목록
-  - `get_urls_from_csv` - 특정 파일에서 URL 추출
-  - `get_all_urls` - 모든 파일에서 URL 가져오기
-- ✅ **CSV 리소스**: `csv://filename.csv` URI로 접근
 - ✅ **자동 카테고리화**: 캠페인별 URL 정리
 - ✅ **설정 불필요**: Claude Desktop에만 추가하면 됨
 
@@ -188,38 +173,6 @@ links.csv 검색
   ],
   "total": 9
 }
-```
-
-### 2. list_csv_files
-
-데이터 디렉토리의 모든 CSV 파일을 나열합니다.
-
-**Claude에서 사용**:
-```
-"CSV 파일 목록 보여줘"
-```
-
-**응답**:
-```json
-["links.csv"]
-```
-
-### 3. get_urls_from_csv
-
-특정 CSV 파일에서 URL을 추출합니다.
-
-**Claude에서 사용**:
-```
-"links.csv에서 URL 추출해줘"
-```
-
-### 4. get_all_urls
-
-모든 CSV 파일에서 URL을 가져옵니다.
-
-**Claude에서 사용**:
-```
-"모든 CSV 파일의 URL 보여줘"
 ```
 
 ## 🛠️ 개발

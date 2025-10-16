@@ -150,7 +150,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
 
   if (req.method !== 'POST') {
     return res.status(200).json({
-      name: '링크찾기',
+      name: '페이북 정보',
       version: '1.0.0',
       description: '페이북 트래킹 링크 검색 서버',
       protocol: 'mcp',
@@ -265,36 +265,6 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
                 required: ['query'],
               },
             },
-            {
-              name: 'get_urls_from_csv',
-              description: 'Extract and organize URLs from a CSV file',
-              inputSchema: {
-                type: 'object',
-                properties: {
-                  filename: {
-                    type: 'string',
-                    description: 'Name of the CSV file to process',
-                  },
-                },
-                required: ['filename'],
-              },
-            },
-            {
-              name: 'list_csv_files',
-              description: 'List all available CSV files',
-              inputSchema: {
-                type: 'object',
-                properties: {},
-              },
-            },
-            {
-              name: 'get_all_urls',
-              description: 'Get all URLs from all CSV files',
-              inputSchema: {
-                type: 'object',
-                properties: {},
-              },
-            },
           ],
         },
       });
@@ -328,75 +298,6 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
               {
                 type: 'text',
                 text: JSON.stringify(results, null, 2),
-              },
-            ],
-          },
-        });
-      }
-
-      if (toolName === 'list_csv_files') {
-        const files = getCSVFiles();
-        return res.status(200).json({
-          jsonrpc: '2.0',
-          id,
-          result: {
-            content: [
-              {
-                type: 'text',
-                text: JSON.stringify(files, null, 2),
-              },
-            ],
-          },
-        });
-      }
-
-      if (toolName === 'get_urls_from_csv') {
-        const filename = args.filename;
-        if (!filename) {
-          return res.status(200).json({
-            jsonrpc: '2.0',
-            id,
-            error: {
-              code: -32602,
-              message: 'Invalid params: filename is required',
-            },
-          });
-        }
-
-        const data = readCSVFile(filename);
-        const urls = organizeURLs(data);
-
-        return res.status(200).json({
-          jsonrpc: '2.0',
-          id,
-          result: {
-            content: [
-              {
-                type: 'text',
-                text: JSON.stringify(urls, null, 2),
-              },
-            ],
-          },
-        });
-      }
-
-      if (toolName === 'get_all_urls') {
-        const files = getCSVFiles();
-        const allUrls: Record<string, OrganizedURLs> = {};
-
-        for (const file of files) {
-          const data = readCSVFile(file);
-          allUrls[file] = organizeURLs(data);
-        }
-
-        return res.status(200).json({
-          jsonrpc: '2.0',
-          id,
-          result: {
-            content: [
-              {
-                type: 'text',
-                text: JSON.stringify(allUrls, null, 2),
               },
             ],
           },
