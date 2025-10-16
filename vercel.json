@@ -1,6 +1,8 @@
 {
   "rewrites": [
-    { "source": "/", "destination": "/public/index.html" }
+    { "source": "/", "destination": "/public/index.html" },
+    { "source": "/install.sh", "destination": "/api/install" },
+    { "source": "/mcp-proxy.cjs", "destination": "/api/proxy" }
   ],
   "headers": [
     {
