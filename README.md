@@ -12,7 +12,23 @@
 
 ## 🚀 빠른 시작
 
-### Claude Desktop 사용자
+### 방법 1: 자동 설치 스크립트 (추천)
+
+한 줄 명령어로 모든 설정을 자동으로 완료합니다:
+
+```bash
+curl -fsSL https://raw.githubusercontent.com/newbieYond/payboocmcp/main/payboocmcp_install.sh | bash
+```
+
+**설치 완료 후:**
+- Claude Desktop 재시작 (Cmd + Q, 재실행)
+- "페이북 링크 찾아줘" 테스트
+
+---
+
+### 방법 2: 수동 설치
+
+#### Claude Desktop 사용자
 
 1. **저장소 클론**:
    ```bash
@@ -38,9 +54,23 @@
 
    `/절대/경로/payboocmcp`를 실제 경로로 변경하세요.
 
-3. **Claude Desktop 재시작** (Cmd + Q, 재실행)
+3. **다운로드 또는 설치**:
 
-4. **테스트**:
+   **옵션 A - 원격 프록시 다운로드 (추천)**:
+   ```bash
+   mkdir -p ~/.paybooc-mcp
+   curl -fsSL https://raw.githubusercontent.com/newbieYond/payboocmcp/main/mcp-proxy.cjs \
+     -o ~/.paybooc-mcp/mcp-proxy.cjs
+   ```
+
+   그리고 설정에서 경로를 `~/.paybooc-mcp/mcp-proxy.cjs`로 변경
+
+   **옵션 B - 로컬 프로젝트 사용**:
+   위 설정 그대로 사용 (절대 경로 필요)
+
+4. **Claude Desktop 재시작** (Cmd + Q, 재실행)
+
+5. **테스트**:
    - Claude에게: **"페이북 링크 찾아줘"** (프롬프트 실행)
    - Claude에게: "페이북 링크 찾아줘: 카드" (키워드 포함)
    - Claude에게: "lotto 검색해줘"
