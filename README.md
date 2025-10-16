@@ -1,239 +1,250 @@
-# PaybooCMCP - Remote MCP Server
+# 링크찾기 - 페이북 트래킹 링크 검색 MCP 서버
 
-TypeScript-based Remote MCP server for processing CSV files and extracting organized URL links. Works with Claude Desktop from anywhere via Vercel.
+텍스트 검색으로 페이북 트래킹 링크를 찾는 MCP (Model Context Protocol) 서버입니다. Vercel에 배포되어 Claude Desktop에서 원격으로 사용할 수 있습니다.
 
-## 🌐 What is This?
+## 🌐 이게 뭔가요?
 
-A **Remote MCP (Model Context Protocol) server** that:
-- Processes CSV files containing URLs
-- Extracts and organizes URLs by category
-- Works with Claude Desktop over HTTPS
-- Hosted on Vercel (no local server needed)
+**원격 MCP (Model Context Protocol) 서버**로:
+- 페이북 트래킹 링크를 텍스트로 검색
+- 캠페인, 콘텐츠, 키워드 등으로 필터링
+- Claude Desktop에서 HTTPS로 작동
+- Vercel에 호스팅 (로컬 서버 불필요)
 
-## 🚀 Quick Start
+## 🚀 빠른 시작
 
-### For Claude Desktop Users
+### Claude Desktop 사용자
 
-1. **Clone this repository**:
+1. **저장소 클론**:
    ```bash
    git clone https://github.com/newbieYond/payboocmcp.git
    cd payboocmcp
    ```
 
-2. **Configure Claude Desktop**:
+2. **Claude Desktop 설정**:
 
-   Edit `~/Library/Application Support/Claude/claude_desktop_config.json`:
+   `~/Library/Application Support/Claude/claude_desktop_config.json` 편집:
    ```json
    {
      "mcpServers": {
-       "payboocmcp-remote": {
+       "링크찾기": {
          "command": "node",
          "args": [
-           "/ABSOLUTE/PATH/TO/payboocmcp/mcp-proxy.cjs"
+           "/절대/경로/payboocmcp/mcp-proxy.cjs"
          ]
        }
      }
    }
    ```
 
-   Replace `/ABSOLUTE/PATH/TO/payboocmcp` with your actual path.
+   `/절대/경로/payboocmcp`를 실제 경로로 변경하세요.
 
-3. **Restart Claude Desktop** (Cmd + Q, then reopen)
+3. **Claude Desktop 재시작** (Cmd + Q, 재실행)
 
-4. **Test it**:
-   - Ask Claude: "CSV 파일 목록을 보여줘"
-   - Ask Claude: "example-links.csv에서 URL을 추출해줘"
+4. **테스트**:
+   - Claude에게: "카드 관련 링크 찾아줘"
+   - Claude에게: "lotto 검색해줘"
+   - Claude에게: "이벤트 링크 보여줘"
 
-## 📋 Features
+## 📋 주요 기능
 
-- ✅ **Remote Access**: Works from anywhere with internet
-- ✅ **No Local Server**: Runs on Vercel serverless
-- ✅ **3 MCP Tools**:
-  - `list_csv_files` - List available CSV files
-  - `get_urls_from_csv` - Extract URLs from specific file
-  - `get_all_urls` - Get all URLs from all files
-- ✅ **CSV Resources**: Access via `csv://filename.csv` URIs
-- ✅ **Auto Categorization**: URLs organized by category/type
-- ✅ **Zero Configuration**: Just add to Claude Desktop
+- ✅ **원격 접근**: 인터넷만 있으면 어디서나 사용
+- ✅ **로컬 서버 불필요**: Vercel 서버리스로 실행
+- ✅ **4가지 MCP 도구**:
+  - `search_links` ⭐ **텍스트로 트래킹 링크 검색**
+  - `list_csv_files` - CSV 파일 목록
+  - `get_urls_from_csv` - 특정 파일에서 URL 추출
+  - `get_all_urls` - 모든 파일에서 URL 가져오기
+- ✅ **CSV 리소스**: `csv://filename.csv` URI로 접근
+- ✅ **자동 카테고리화**: 캠페인별 URL 정리
+- ✅ **설정 불필요**: Claude Desktop에만 추가하면 됨
 
-## 🗂️ Project Structure
+## 🗂️ 프로젝트 구조
 
 ```
 payboocmcp/
 ├── api/
-│   └── mcp-server.ts       # Remote MCP endpoint (Vercel)
+│   └── mcp-server.ts       # 원격 MCP 엔드포인트 (Vercel)
 ├── src/
-│   ├── index.ts            # Local MCP server (optional)
-│   └── csv-processor.ts    # CSV parsing logic
+│   ├── index.ts            # 로컬 MCP 서버 (선택)
+│   └── csv-processor.ts    # CSV 파싱 로직
 ├── data/
-│   ├── example-links.csv   # Sample CSV with categories
-│   └── sample-urls.csv     # Simple CSV format
-├── mcp-proxy.cjs           # HTTP-to-stdio proxy for Claude Desktop
+│   └── links.csv           # 페이북 트래킹 링크 데이터
+├── mcp-proxy.cjs           # HTTP-to-stdio 프록시
 ├── package.json
 ├── tsconfig.json
 ├── vercel.json
 └── README.md
 ```
 
-## 📝 CSV File Format
+## 📝 CSV 파일 형식
 
-### With Categories
-
-```csv
-category,title,url,description
-Documentation,TypeScript,https://typescriptlang.org,Official docs
-Tools,GitHub,https://github.com,Code hosting
-```
-
-### Simple Format
+### links.csv (트래킹 링크)
 
 ```csv
-name,link
-TypeScript,https://typescriptlang.org
-GitHub,https://github.com
+캠페인,광고 소재,콘텐츠,키워드,딥링크,트래킹 링크
+바로카드 전용 혜택 페이지,-,-,-,ispmobile://...,https://link.paybooc.co.kr/...
+카드 추가,-,-,-,ispmobile://...,https://link.paybooc.co.kr/...
 ```
 
-URLs can be in **any column** - the parser automatically detects them.
+모든 필드에서 검색이 가능합니다.
 
-## 🔧 How It Works
+## 🔧 작동 방식
 
 ```
-Claude Desktop (local)
+Claude Desktop (로컬)
     ↓ stdio
-mcp-proxy.cjs (local proxy)
+mcp-proxy.cjs (로컬 프록시)
     ↓ HTTPS
 Vercel MCP Server (https://payboocmcp.vercel.app/api/mcp-server)
     ↓
-CSV files processing
+links.csv 검색
     ↓
-Organized URLs returned
+매칭된 트래킹 링크 반환
 ```
 
-## 📖 Available Tools
+## 📖 사용 가능한 도구
 
-### 1. list_csv_files
+### 1. search_links ⭐ 주요 기능
 
-Lists all CSV files in the data directory.
+텍스트로 트래킹 링크를 검색합니다.
 
-**Usage in Claude**:
+**Claude에서 사용**:
 ```
-"What CSV files are available?"
-```
-
-**Response**:
-```json
-[
-  "example-links.csv",
-  "sample-urls.csv"
-]
+"카드 관련 링크 찾아줘"
+"lotto 검색해줘"
+"이벤트 링크 보여줘"
+"민생 관련된 거 찾아줘"
 ```
 
-### 2. get_urls_from_csv
-
-Extracts URLs from a specific CSV file, organized by category.
-
-**Usage in Claude**:
-```
-"Get URLs from example-links.csv"
-```
-
-**Response**:
+**응답 예시**:
 ```json
 {
-  "urls": ["https://...", "https://..."],
-  "categorized": {
-    "Documentation": ["https://..."],
-    "Tools": ["https://..."]
-  },
-  "total": 8
+  "query": "카드",
+  "matches": [
+    {
+      "campaign": "바로카드 전용 혜택 페이지",
+      "adMaterial": "-",
+      "content": "-",
+      "keyword": "-",
+      "deepLink": "ispmobile://ablink?link_target=id&page_id=P0622PG001W",
+      "trackingLink": "https://link.paybooc.co.kr/barocard_member"
+    }
+  ],
+  "total": 9
 }
 ```
 
-### 3. get_all_urls
+### 2. list_csv_files
 
-Gets all URLs from all CSV files.
+데이터 디렉토리의 모든 CSV 파일을 나열합니다.
 
-**Usage in Claude**:
+**Claude에서 사용**:
 ```
-"Show me all URLs from all CSV files"
+"CSV 파일 목록 보여줘"
 ```
 
-## 🛠️ Development
+**응답**:
+```json
+["links.csv"]
+```
 
-### Local Development
+### 3. get_urls_from_csv
+
+특정 CSV 파일에서 URL을 추출합니다.
+
+**Claude에서 사용**:
+```
+"links.csv에서 URL 추출해줘"
+```
+
+### 4. get_all_urls
+
+모든 CSV 파일에서 URL을 가져옵니다.
+
+**Claude에서 사용**:
+```
+"모든 CSV 파일의 URL 보여줘"
+```
+
+## 🛠️ 개발
+
+### 로컬 개발
 
 ```bash
-# Install dependencies
+# 의존성 설치
 npm install
 
-# Build TypeScript
+# TypeScript 빌드
 npm run build
 
-# Run local MCP server (optional)
+# 로컬 MCP 서버 실행 (선택)
 npm run dev
 ```
 
-### Testing Remote MCP
+### 원격 MCP 테스트
 
 ```bash
-# Test the proxy
+# 검색 기능 테스트
+node test-search.cjs
+
+# 프록시 테스트
 echo '{"jsonrpc":"2.0","id":1,"method":"tools/list"}' | node mcp-proxy.cjs
 ```
 
-### Adding Your Own CSV Files
+### CSV 파일 추가하기
 
-1. Add CSV file to `data/` directory
-2. Commit and push to GitHub
-3. Vercel automatically redeploys
-4. URLs available immediately in Claude Desktop
+1. `data/` 디렉토리에 CSV 파일 추가
+2. GitHub에 커밋 및 푸시
+3. Vercel 자동 재배포
+4. Claude Desktop에서 즉시 사용 가능
 
-## 🌍 Deployment
+## 🌍 배포
 
-This project is automatically deployed to Vercel:
+이 프로젝트는 Vercel에 자동 배포됩니다:
 
-- **MCP Endpoint**: https://payboocmcp.vercel.app/api/mcp-server
-- **Protocol**: JSON-RPC 2.0 over HTTPS
-- **Auto-deploy**: Every push to `main` branch
+- **MCP 엔드포인트**: https://payboocmcp.vercel.app/api/mcp-server
+- **프로토콜**: JSON-RPC 2.0 over HTTPS
+- **자동 배포**: `main` 브랜치에 푸시할 때마다
 
-## 📚 Documentation
+## 📚 문서
 
-- **[REMOTE_MCP_SETUP.md](REMOTE_MCP_SETUP.md)** - Detailed setup guide with troubleshooting
+- **[REMOTE_MCP_SETUP.md](REMOTE_MCP_SETUP.md)** - 상세 설정 가이드 및 문제 해결
 
-## 🔐 Security
+## 🔐 보안
 
-- HTTPS only (Vercel automatic SSL)
-- CORS enabled for cross-origin requests
-- No authentication (public read-only access)
-- CSV files are version-controlled
+- HTTPS 전용 (Vercel 자동 SSL)
+- CORS 활성화
+- 인증 없음 (공개 읽기 전용)
+- CSV 파일은 버전 관리됨
 
-## 🆚 Remote vs Local MCP
+## 🆚 원격 vs 로컬 MCP
 
-| Feature | Remote MCP | Local MCP |
-|---------|-----------|-----------|
-| Setup | Simple (proxy only) | Complex (build + config) |
-| Access | Anywhere | Local only |
-| Speed | ~100-500ms | ~10ms |
-| Sharing | Easy (same URL) | Hard (each setup) |
-| Updates | Auto (Vercel) | Manual rebuild |
+| 기능 | 원격 MCP | 로컬 MCP |
+|------|---------|---------|
+| 설정 | 간단 (프록시만) | 복잡 (빌드 + 설정) |
+| 접근성 | 어디서나 | 로컬만 |
+| 속도 | ~100-500ms | ~10ms |
+| 공유 | 쉬움 (같은 URL) | 어려움 (각각 설정) |
+| 업데이트 | 자동 (Vercel) | 수동 재빌드 |
 
-## 🤝 Contributing
+## 🤝 기여하기
 
-1. Fork the repository
-2. Add your CSV files to `data/`
-3. Create a pull request
+1. 저장소 포크
+2. `data/`에 CSV 파일 추가
+3. Pull request 생성
 
-## 📄 License
+## 📄 라이선스
 
 MIT
 
-## 🔗 Links
+## 🔗 링크
 
 - **GitHub**: https://github.com/newbieYond/payboocmcp
-- **Remote MCP Server**: https://payboocmcp.vercel.app/api/mcp-server
-- **MCP Specification**: https://spec.modelcontextprotocol.io/
+- **원격 MCP 서버**: https://payboocmcp.vercel.app/api/mcp-server
+- **MCP 명세**: https://spec.modelcontextprotocol.io/
 
 ---
 
-**Built with**: TypeScript, Vercel, Model Context Protocol
-**Generated with**: Claude Code
-**Ready for**: Production use with Claude Desktop
+**기술 스택**: TypeScript, Vercel, Model Context Protocol
+**생성 도구**: Claude Code
+**용도**: Claude Desktop과 함께 프로덕션 사용
