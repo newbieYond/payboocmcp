@@ -13,6 +13,21 @@ interface OrganizedURLs {
   total: number;
 }
 
+interface TrackingLink {
+  campaign: string;
+  adMaterial: string;
+  content: string;
+  keyword: string;
+  deepLink: string;
+  trackingLink: string;
+}
+
+interface SearchResult {
+  query: string;
+  matches: TrackingLink[];
+  total: number;
+}
+
 const DATA_DIR = join(process.cwd(), 'data');
 
 function extractURLs(data: CSVRow[]): string[] {
@@ -80,6 +95,48 @@ function getCSVFiles(): string[] {
   return readdirSync(DATA_DIR).filter(file => file.endsWith('.csv'));
 }
 
+function searchTrackingLinks(query: string): SearchResult {
+  const filePath = join(DATA_DIR, 'links.csv');
+  const fileContent = readFileSync(filePath, 'utf-8');
+  const rows = parse(fileContent, {
+    columns: true,
+    skip_empty_lines: true,
+    trim: true,
+  });
+
+  const normalizedQuery = query.toLowerCase().trim();
+  const matches: TrackingLink[] = [];
+
+  for (const row of rows) {
+    const campaign = row['캠페인'] || '';
+    const adMaterial = row['광고 소재'] || '';
+    const content = row['콘텐츠'] || '';
+    const keyword = row['키워드'] || '';
+    const deepLink = row['딥링크'] || '';
+    const trackingLink = row['트래킹 링크'] || '';
+
+    // Search in all fields
+    const searchText = `${campaign} ${adMaterial} ${content} ${keyword} ${deepLink} ${trackingLink}`.toLowerCase();
+
+    if (searchText.includes(normalizedQuery)) {
+      matches.push({
+        campaign,
+        adMaterial,
+        content,
+        keyword,
+        deepLink,
+        trackingLink,
+      });
+    }
+  }
+
+  return {
+    query,
+    matches,
+    total: matches.length,
+  };
+}
+
 //  MCP JSON-RPC handler
 export default async function handler(req: VercelRequest, res: VercelResponse) {
   // CORS headers
@@ -93,9 +150,9 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
 
   if (req.method !== 'POST') {
     return res.status(200).json({
-      name: 'payboocmcp-remote',
+      name: '링크찾기',
       version: '1.0.0',
-      description: 'MCP server for CSV URL processing',
+      description: '페이북 트래킹 링크 검색 서버',
       protocol: 'mcp',
       message: 'Send POST requests with JSON-RPC 2.0 format',
     });
@@ -164,7 +221,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
             resources: {},
           },
           serverInfo: {
-            name: 'payboocmcp-remote',
+            name: '링크찾기',
             version: '1.0.0',
           },
         },
@@ -195,6 +252,20 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
         id,
         result: {
           tools: [
+            {
+              name: 'search_links',
+              description: '텍스트로 페이북 트래킹 링크 검색 (캠페인, 콘텐츠, 키워드 등으로 검색)',
+              inputSchema: {
+                type: 'object',
+                properties: {
+                  query: {
+                    type: 'string',
+                    description: '검색할 텍스트 (예: "카드", "이벤트", "lotto" 등)',
+                  },
+                },
+                required: ['query'],
+              },
+            },
             {
               name: 'get_urls_from_csv',
               description: 'Extract and organize URLs from a CSV file',
@@ -234,6 +305,35 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     if (method === 'tools/call') {
       const toolName = params?.name;
       const args = params?.arguments || {};
+
+      if (toolName === 'search_links') {
+        const query = args.query;
+        if (!query) {
+          return res.status(200).json({
+            jsonrpc: '2.0',
+            id,
+            error: {
+              code: -32602,
+              message: 'Invalid params: query is required',
+            },
+          });
+        }
+
+        const results = searchTrackingLinks(query);
+
+        return res.status(200).json({
+          jsonrpc: '2.0',
+          id,
+          result: {
+            content: [
+              {
+                type: 'text',
+                text: JSON.stringify(results, null, 2),
+              },
+            ],
+          },
+        });
+      }
 
       if (toolName === 'list_csv_files') {
         const files = getCSVFiles();
