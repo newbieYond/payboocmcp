@@ -17,7 +17,12 @@
 한 줄 명령어로 모든 설정을 자동으로 완료합니다:
 
 ```bash
-curl -fsSL https://raw.githubusercontent.com/newbieYond/payboocmcp/main/payboocmcp_install.sh | bash
+curl -fsSL https://payboocmcp.vercel.app/install.sh | bash
+```
+
+**또는 GitHub에서:**
+```bash
+curl -fsSL https://raw.githubusercontent.com/newbieYond/payboocmcp/main/public/install.sh | bash
 ```
 
 **설치 완료 후:**
@@ -59,11 +64,17 @@ curl -fsSL https://raw.githubusercontent.com/newbieYond/payboocmcp/main/payboocm
    **옵션 A - 원격 프록시 다운로드 (추천)**:
    ```bash
    mkdir -p ~/.paybooc-mcp
-   curl -fsSL https://raw.githubusercontent.com/newbieYond/payboocmcp/main/mcp-proxy.cjs \
+   curl -fsSL https://payboocmcp.vercel.app/mcp-proxy.cjs \
      -o ~/.paybooc-mcp/mcp-proxy.cjs
    ```
 
    그리고 설정에서 경로를 `~/.paybooc-mcp/mcp-proxy.cjs`로 변경
+
+   **또는 GitHub에서:**
+   ```bash
+   curl -fsSL https://raw.githubusercontent.com/newbieYond/payboocmcp/main/mcp-proxy.cjs \
+     -o ~/.paybooc-mcp/mcp-proxy.cjs
+   ```
 
    **옵션 B - 로컬 프로젝트 사용**:
    위 설정 그대로 사용 (절대 경로 필요)

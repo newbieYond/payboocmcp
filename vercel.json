@@ -2,6 +2,30 @@
   "rewrites": [
     { "source": "/", "destination": "/public/index.html" }
   ],
+  "headers": [
+    {
+      "source": "/install.sh",
+      "headers": [
+        {
+          "key": "Content-Type",
+          "value": "text/plain; charset=utf-8"
+        },
+        {
+          "key": "Content-Disposition",
+          "value": "inline; filename=payboocmcp-install.sh"
+        }
+      ]
+    },
+    {
+      "source": "/mcp-proxy.cjs",
+      "headers": [
+        {
+          "key": "Content-Type",
+          "value": "application/javascript; charset=utf-8"
+        }
+      ]
+    }
+  ],
   "functions": {
     "api/mcp-server.ts": {
       "memory": 1024,

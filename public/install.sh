@@ -1,7 +1,7 @@
 #!/bin/bash
 
 # Paybooc MCP 자동 설치 스크립트
-# 사용법: curl -fsSL https://raw.githubusercontent.com/newbieYond/payboocmcp/main/payboocmcp_install.sh | bash
+# 사용법: curl -fsSL https://payboocmcp.vercel.app/install.sh | bash
 
 set -e  # 에러 발생 시 스크립트 중단
 
@@ -193,10 +193,10 @@ download_mcp_proxy() {
 
     PROXY_FILE="$INSTALL_DIR/mcp-proxy.cjs"
 
-    # GitHub에서 mcp-proxy.cjs 다운로드
-    curl -fsSL "https://raw.githubusercontent.com/newbieYond/payboocmcp/main/mcp-proxy.cjs" -o "$PROXY_FILE" || {
+    # Vercel에서 mcp-proxy.cjs 다운로드
+    curl -fsSL "https://payboocmcp.vercel.app/mcp-proxy.cjs" -o "$PROXY_FILE" || {
         log_error "프록시 스크립트 다운로드 실패"
-        log_error "URL: https://raw.githubusercontent.com/newbieYond/payboocmcp/main/mcp-proxy.cjs"
+        log_error "URL: https://payboocmcp.vercel.app/mcp-proxy.cjs"
         return 1
     }
 
