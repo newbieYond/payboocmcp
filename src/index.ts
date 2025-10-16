@@ -7,8 +7,10 @@ import {
   ListToolsRequestSchema,
   ListResourcesRequestSchema,
   ReadResourceRequestSchema,
+  ListPromptsRequestSchema,
+  GetPromptRequestSchema,
 } from '@modelcontextprotocol/sdk/types.js';
-import { readCSVFile, getCSVFiles, organizeURLs } from './csv-processor.js';
+import { readCSVFile, getCSVFiles, organizeURLs, searchTrackingLinks } from './csv-processor.js';
 
 const server = new Server(
   {
@@ -19,6 +21,7 @@ const server = new Server(
     capabilities: {
       tools: {},
       resources: {},
+      prompts: {},
     },
   }
 );
@@ -27,6 +30,20 @@ const server = new Server(
 server.setRequestHandler(ListToolsRequestSchema, async () => {
   return {
     tools: [
+      {
+        name: 'search_links',
+        description: '페이북 트래킹 링크를 텍스트로 검색합니다 (캠페인, 콘텐츠, 키워드 등)',
+        inputSchema: {
+          type: 'object',
+          properties: {
+            query: {
+              type: 'string',
+              description: '검색할 텍스트 (예: "카드", "이벤트", "lotto" 등)',
+            },
+          },
+          required: ['query'],
+        },
+      },
       {
         name: 'get_urls_from_csv',
         description: 'Extract and organize URLs from a CSV file',
@@ -66,7 +83,23 @@ server.setRequestHandler(CallToolRequestSchema, async (request) => {
   const { name, arguments: args } = request.params;
 
   try {
-    if (name === 'get_urls_from_csv') {
+    if (name === 'search_links') {
+      const query = args?.query as string;
+      if (!query) {
+        throw new Error('Query is required');
+      }
+
+      const results = await searchTrackingLinks(query);
+
+      return {
+        content: [
+          {
+            type: 'text',
+            text: JSON.stringify(results, null, 2),
+          },
+        ],
+      };
+    } else if (name === 'get_urls_from_csv') {
       const filename = args?.filename as string;
       if (!filename) {
         throw new Error('Filename is required');
@@ -164,6 +197,62 @@ server.setRequestHandler(ReadResourceRequestSchema, async (request) => {
     const errorMessage = error instanceof Error ? error.message : 'Unknown error';
     throw new Error(`Failed to read resource ${uri}: ${errorMessage}`);
   }
+});
+
+// List available prompts
+server.setRequestHandler(ListPromptsRequestSchema, async () => {
+  return {
+    prompts: [
+      {
+        name: 'find-paybooc-links',
+        description: '페이북 트래킹 링크를 검색합니다',
+        arguments: [
+          {
+            name: 'keyword',
+            description: '검색할 키워드 (선택사항)',
+            required: false,
+          },
+        ],
+      },
+    ],
+  };
+});
+
+// Get prompt
+server.setRequestHandler(GetPromptRequestSchema, async (request) => {
+  const { name, arguments: args } = request.params;
+
+  if (name === 'find-paybooc-links') {
+    const keyword = args?.keyword as string | undefined;
+
+    if (keyword) {
+      return {
+        messages: [
+          {
+            role: 'user',
+            content: {
+              type: 'text',
+              text: `페이북 링크 찾아줘: ${keyword}`,
+            },
+          },
+        ],
+      };
+    } else {
+      return {
+        messages: [
+          {
+            role: 'user',
+            content: {
+              type: 'text',
+              text: '페이북 링크 찾아줘',
+            },
+          },
+        ],
+      };
+    }
+  }
+
+  throw new Error(`Unknown prompt: ${name}`);
 });
 
 async function main() {

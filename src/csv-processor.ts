@@ -14,6 +14,21 @@ export interface OrganizedURLs {
   total: number;
 }
 
+export interface TrackingLink {
+  campaign: string;
+  adMaterial: string;
+  content: string;
+  keyword: string;
+  deepLink: string;
+  trackingLink: string;
+}
+
+export interface SearchResult {
+  query: string;
+  matches: TrackingLink[];
+  total: number;
+}
+
 /**
  * Read and parse a CSV file
  */
@@ -101,4 +116,46 @@ export function organizeURLs(data: CSVRow[]): OrganizedURLs {
     categorized,
     total: urls.length,
   };
+}
+
+/**
+ * Search for tracking links in links.csv
+ */
+export async function searchTrackingLinks(query: string): Promise<SearchResult> {
+  try {
+    const data = await readCSVFile('links.csv');
+    const normalizedQuery = query.toLowerCase().trim();
+    const matches: TrackingLink[] = [];
+
+    for (const row of data) {
+      const campaign = row['캠페인'] || '';
+      const adMaterial = row['광고 소재'] || '';
+      const content = row['콘텐츠'] || '';
+      const keyword = row['키워드'] || '';
+      const deepLink = row['딥링크'] || '';
+      const trackingLink = row['트래킹 링크'] || '';
+
+      // Search in all fields
+      const searchText = `${campaign} ${adMaterial} ${content} ${keyword} ${deepLink} ${trackingLink}`.toLowerCase();
+
+      if (searchText.includes(normalizedQuery)) {
+        matches.push({
+          campaign,
+          adMaterial,
+          content,
+          keyword,
+          deepLink,
+          trackingLink,
+        });
+      }
+    }
+
+    return {
+      query,
+      matches,
+      total: matches.length,
+    };
+  } catch (error) {
+    throw new Error(`Failed to search tracking links: ${error instanceof Error ? error.message : 'Unknown error'}`);
+  }
 }
