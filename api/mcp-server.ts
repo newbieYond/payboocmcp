@@ -218,7 +218,6 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
           protocolVersion: '2024-11-05',
           capabilities: {
             tools: {},
-            resources: {},
           },
           serverInfo: {
             name: '링크찾기',
@@ -414,52 +413,25 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
       });
     }
 
-    // Handle resources/list
+    // Handle resources/list - return empty for now (CSV format not supported in Claude Desktop)
     if (method === 'resources/list') {
-      const files = getCSVFiles();
       return res.status(200).json({
         jsonrpc: '2.0',
         id,
         result: {
-          resources: files.map((file) => ({
-            uri: `csv://${file}`,
-            name: file,
-            description: `CSV file: ${file}`,
-            mimeType: 'text/csv',
-          })),
+          resources: [],
         },
       });
     }
 
     // Handle resources/read
     if (method === 'resources/read') {
-      const uri = params?.uri;
-      if (!uri) {
-        return res.status(200).json({
-          jsonrpc: '2.0',
-          id,
-          error: {
-            code: -32602,
-            message: 'Invalid params: uri is required',
-          },
-        });
-      }
-
-      const filename = uri.replace('csv://', '');
-      const data = readCSVFile(filename);
-      const urls = organizeURLs(data);
-
       return res.status(200).json({
         jsonrpc: '2.0',
         id,
-        result: {
-          contents: [
-            {
-              uri,
-              mimeType: 'application/json',
-              text: JSON.stringify(urls, null, 2),
-            },
-          ],
+        error: {
+          code: -32601,
+          message: 'Resources not supported - use search_links tool instead',
         },
       });
     }
